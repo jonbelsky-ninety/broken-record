@@ -1,0 +1,7 @@
+# Manual label corrections that survive a relabel. Keyed by note_id.
+# Example:
+#   md_b4487b78c3:
+#     add: [cancellation-refund-failures]
+#     remove: [seat-model-confusion]
+# Empty for now — the M1 seed data has no human corrections yet.
+overrides: {}

@@ -1,0 +1,33 @@
+# Friction-score weights and guardrails — see docs/04-ranking.md for the reasoning.
+# Live here (not in code) so the group can tune them without touching aggregate.py.
+# Changes should be rare and announced: a ranking that moves because the formula changed
+# looks, to the room, like the data changed.
+version: 0.1
+
+# intensity/source/account are looked up per company's STRONGEST note for a given request.
+# source and account are unavailable until the `md` adapter (M4) adds them to Note — they
+# default to 1 (no-op) until then, per docs/03-data-model.md and the seed-data caveat in
+# docs/04-ranking.md's worked example.
+weights:
+  intensity:
+    mild: 1
+    strong: 1.5
+    churn-threatening: 3
+  source:
+    convened: 1        # gong, intercom
+    volunteered: 1.5    # in-app
+  account:
+    prospect: 1
+    trial: 1
+    unknown: 1
+    paying: 1.25
+    paying_at_risk: 1.5   # archetype Ghost or Struggler
+    churned: 1.25
+
+# Friction score = sum over distinct companies of (intensity x source x account weight),
+# times the persistence multiplier below.
+persistence:
+  max_boost: 0.5   # multiplier = 1 + max_boost * (weeks_present / weeks_in_range)
+
+guardrails:
+  min_companies: 3   # below this, a request is listed under "Emerging", not ranked
