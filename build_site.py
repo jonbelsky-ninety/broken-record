@@ -418,13 +418,75 @@ SCRIPT = """
 if dashboard_data:
     SCRIPT = SCRIPT + f"<script>{dashboard.DASHBOARD_SCRIPT}</script>"
 
+# A rudimentary gate, not real access control: this is client-side JS in a public repo, so
+# the password is visible to anyone who reads the source. It stops someone from landing on
+# the link by accident, not a determined viewer. Fine given the data's already sanitized —
+# just don't mistake it for equivalent to Vercel's server-side Password Protection.
+GATE_PASSWORD = "Broken$Record"
+GATE_HTML = f"""
+<div id="pw-gate">
+  <form id="pw-form">
+    <img src="assets/ninety-logo.svg" class="pw-logo" alt="Ninety">
+    <h1>VoC Dashboard</h1>
+    <p>Concept demo — enter the password to continue.</p>
+    <input id="pw-input" type="password" autocomplete="off" placeholder="Password" autofocus>
+    <button type="submit">Enter</button>
+    <p id="pw-error">Wrong password.</p>
+  </form>
+</div>
+"""
+GATE_CSS = """
+#pw-gate{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;
+  align-items:center;justify-content:center;padding:20px}
+#pw-form{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  box-shadow:var(--shadow-3);padding:36px 32px;max-width:320px;width:100%;text-align:center}
+.pw-logo{height:28px;margin-bottom:14px}
+#pw-form h1{font-family:var(--font-heading);font-size:1.2rem;margin:0 0 6px}
+#pw-form p{font-size:.86rem;color:var(--ink-2);margin:0 0 18px}
+#pw-input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;
+  font-family:var(--font-body);font-size:.9rem;margin-bottom:12px;background:var(--surface)}
+#pw-input:focus{outline:none;border-color:var(--accent)}
+#pw-form button{width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);
+  color:#fff;font-family:var(--font-body);font-weight:600;font-size:.9rem;cursor:pointer}
+#pw-form button:hover{background:var(--accent-2)}
+#pw-error{display:none;color:var(--churn);margin:12px 0 0;font-size:.82rem}
+#pw-error.show{display:block}
+body.pw-locked .wrap{display:none}
+body:not(.pw-locked) #pw-gate{display:none}
+"""
+GATE_SCRIPT = f"""
+<script>
+(function(){{
+  var KEY = 'voc-dashboard-unlocked';
+  if (localStorage.getItem(KEY) === '1') {{
+    document.body.classList.remove('pw-locked');
+  }} else {{
+    document.body.classList.add('pw-locked');
+  }}
+  document.getElementById('pw-form').addEventListener('submit', function(ev){{
+    ev.preventDefault();
+    var val = document.getElementById('pw-input').value;
+    if (val === {GATE_PASSWORD!r}) {{
+      localStorage.setItem(KEY, '1');
+      document.body.classList.remove('pw-locked');
+      document.getElementById('pw-error').classList.remove('show');
+    }} else {{
+      document.getElementById('pw-error').classList.add('show');
+    }}
+  }});
+}})();
+</script>
+"""
+
 HTML = f"""<!doctype html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VoC Dashboard</title>
 {design_tokens.FONT_LINKS}
 {STYLE}
-</head><body>
+<style>{GATE_CSS}</style>
+</head><body class="pw-locked">
+{GATE_HTML}
 <div class="wrap">
   <div class="topbar">
     <div class="brand"><img src="assets/ninety-logo.svg" class="brand-logo" alt="Ninety"> VoC Dashboard</div>
@@ -439,6 +501,7 @@ HTML = f"""<!doctype html>
   </div>
 </div>
 {SCRIPT}
+{GATE_SCRIPT}
 </body></html>
 """
 

@@ -13,15 +13,20 @@ here as real.
 Open `index.html` directly in a browser — no server, no build step, no dependencies. Or serve
 the folder with anything static (`python3 -m http.server`, Vercel, GitHub Pages, etc).
 
-## Password-gating on Vercel (free)
+## Password gate
 
-Vercel's own Password Protection is a paid add-on. `middleware.js` does the same thing for
-free via Edge Middleware (included on every plan) — plain HTTP Basic Auth, no dependencies.
+There's a simple built-in lock screen (see `GATE_HTML`/`GATE_CSS`/`GATE_SCRIPT` in
+`build_site.py`) — no Vercel configuration needed, works the moment you deploy. Enter the
+password once and it's remembered per-browser via `localStorage`.
 
-To turn it on: in the Vercel project, go to **Settings → Environment Variables** and add
-`BASIC_AUTH_USER` and `BASIC_AUTH_PASS`, then redeploy. Leave either one unset and the gate
-is a no-op (nobody gets locked out by accident). Never hardcode these in the file itself —
-this repo is public.
+**This is a rudimentary gate, not real access control.** The check runs entirely in
+client-side JS in a public repo, so the password is visible to anyone who reads the page
+source or the source code here. It stops someone from landing on the link by accident; it
+does not stop a determined viewer. That's an acceptable trade-off given the data underneath
+is already sanitized (see below) — just don't mistake it for equivalent to a real server-side
+password wall (e.g. Vercel's paid Password Protection, or a self-rolled HTTP Basic Auth check
+in Edge Middleware), where the password is verified server-side before any content ships to
+the browser at all.
 
 ## Rebuild it
 
