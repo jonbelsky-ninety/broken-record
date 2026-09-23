@@ -19,10 +19,13 @@ Only needed if you change `visibility/data/*.jsonl`, `visibility/taxonomy/*.yaml
 under `reports/`:
 
 ```bash
-pip install -r requirements.txt
+pip install -r visibility/requirements.txt
 python3 visibility/scripts/aggregate.py   # notes + assignments + taxonomy -> aggregates.json
 python3 build_site.py                     # -> index.html at the repo root
 ```
+
+(`requirements.txt` lives under `visibility/`, not the repo root, so Vercel doesn't mistake
+this static site for a Python app — see `vercel.json`.)
 
 ## Layout
 
@@ -37,6 +40,8 @@ visibility/
   taxonomy/        the canonical request taxonomy + ranking weights (requests.yaml, ranking.yaml)
   data/            notes.jsonl + assignments.jsonl (labeled data) -> aggregates.json (computed)
   scripts/         aggregate.py (pure scoring, no model calls) + build_site.py (the dashboard view)
+  requirements.txt the one Python dependency (pyyaml), needed only to rebuild, not to view
+vercel.json                   tells Vercel this is a plain static site, no build/runtime
 ```
 
 ## About the data
