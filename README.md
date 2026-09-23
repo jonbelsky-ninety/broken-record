@@ -13,6 +13,16 @@ here as real.
 Open `index.html` directly in a browser — no server, no build step, no dependencies. Or serve
 the folder with anything static (`python3 -m http.server`, Vercel, GitHub Pages, etc).
 
+## Password-gating on Vercel (free)
+
+Vercel's own Password Protection is a paid add-on. `middleware.js` does the same thing for
+free via Edge Middleware (included on every plan) — plain HTTP Basic Auth, no dependencies.
+
+To turn it on: in the Vercel project, go to **Settings → Environment Variables** and add
+`BASIC_AUTH_USER` and `BASIC_AUTH_PASS`, then redeploy. Leave either one unset and the gate
+is a no-op (nobody gets locked out by accident). Never hardcode these in the file itself —
+this repo is public.
+
 ## Rebuild it
 
 Only needed if you change `visibility/data/*.jsonl`, `visibility/taxonomy/*.yaml`, or a report
