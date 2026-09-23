@@ -20,9 +20,9 @@ ROOT = Path(__file__).resolve().parent.parent
 AGGREGATES = ROOT / "data" / "aggregates.json"
 OUT = ROOT / "site" / "index.html"
 
-_REPO_ROOT = ROOT.parent
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+_SCRATCH_DIR = ROOT.parent / "scratch"
+if str(_SCRATCH_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRATCH_DIR))
 import design_tokens  # Terra (Ninety's design system) tokens — see that module's docstring
 
 KIND_LABEL = {"defect": "Defect", "gap": "Gap", "confusion": "Confusion",
@@ -111,10 +111,18 @@ def evidence_row(rid: str, evidence: list) -> str:
                             for k, v in e.get("summary", {}).items())
         intensity = e.get("intensity", "mild")
         int_cls = {"churn-threatening": "churn"}.get(intensity, intensity)
+        # An unresolved company has no reliable identity attached to it — showing the literal
+        # word "unknown" next to a contact name reads like a bug, not a fact. Drop both rather
+        # than assert an identity the pipeline itself couldn't resolve.
+        company = e["company"]
+        id_line = (
+            f'<span class="ev-co">{html.escape(company)}</span>'
+            f'<span class="ev-contact">{html.escape(e.get("contact") or "")}</span>'
+            if company != "unknown" else ""
+        )
         items.append(
             '<div class="ev-item">'
-            f'<div class="ev-head"><span class="ev-co">{html.escape(e["company"])}</span>'
-            f'<span class="ev-contact">{html.escape(e.get("contact") or "")}</span>'
+            f'<div class="ev-head">{id_line}'
             f'<span class="ev-week">{html.escape(e["week"])}</span>'
             f'{stream_chips(e["streams"])}'
             f'<span class="sent sent-{e.get("sentiment", "neutral")[:3]}">{html.escape(e.get("sentiment", ""))}</span>'
@@ -270,7 +278,7 @@ def main() -> None:
     OUT.parent.mkdir(exist_ok=True)
     assets_dir = OUT.parent / "assets"
     assets_dir.mkdir(exist_ok=True)
-    logo_src = _REPO_ROOT / "assets" / "ninety-logo.svg"
+    logo_src = _SCRATCH_DIR / "assets" / "ninety-logo.svg"
     if logo_src.exists():
         (assets_dir / "ninety-logo.svg").write_bytes(logo_src.read_bytes())
     OUT.write_text(html_out, encoding="utf-8")

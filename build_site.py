@@ -74,14 +74,23 @@ def render_table(rows: list[str]) -> str:
     seg_i = header.index("Segment") if "Segment" in header else -1
     si_i = header.index("Sentiment · Intensity") if "Sentiment · Intensity" in header else -1
     co_i = header.index("Company") if "Company" in header else -1
+    who_i = header.index("Who") if "Who" in header else -1
     rank = header[0] == "#"
     th = "".join(f"<th>{inline(h)}</th>" for h in header)
     trs = []
     for r in body:
+        # An unresolved company has no reliable identity attached — the literal word "unknown"
+        # next to a contact name reads like a bug, not a fact. Blank both rather than assert
+        # an identity the pipeline itself couldn't resolve.
+        unresolved = co_i != -1 and r[co_i] == "unknown"
         tds = []
         for i, c in enumerate(r):
             if i == 0 and rank:
                 tds.append(f'<td class="rank"><span>{html.escape(c)}</span></td>')
+            elif i == co_i and unresolved:
+                tds.append('<td class="co">—</td>')
+            elif i == who_i and unresolved:
+                tds.append('<td>—</td>')
             elif i == seg_i:
                 tds.append(f'<td><span class="chip seg">{html.escape(c)}</span></td>')
             elif i == si_i:
