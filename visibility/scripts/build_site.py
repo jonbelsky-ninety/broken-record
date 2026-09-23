@@ -111,19 +111,11 @@ def evidence_row(rid: str, evidence: list) -> str:
                             for k, v in e.get("summary", {}).items())
         intensity = e.get("intensity", "mild")
         int_cls = {"churn-threatening": "churn"}.get(intensity, intensity)
-        # An unresolved company has no reliable identity attached to it — showing the literal
-        # word "unknown" next to a contact name reads like a bug, not a fact. Drop both rather
-        # than assert an identity the pipeline itself couldn't resolve.
-        company = e["company"]
-        id_line = (
-            f'<span class="ev-co">{html.escape(company)}</span>'
-            f'<span class="ev-contact">{html.escape(e.get("contact") or "")}</span>'
-            if company != "unknown" else ""
-        )
+        # No company/contact identity on evidence cards, resolved or not — the dashboard reads
+        # by pattern and evidence (week, stream, sentiment, intensity, summary), not by who.
         items.append(
             '<div class="ev-item">'
-            f'<div class="ev-head">{id_line}'
-            f'<span class="ev-week">{html.escape(e["week"])}</span>'
+            f'<div class="ev-head"><span class="ev-week">{html.escape(e["week"])}</span>'
             f'{stream_chips(e["streams"])}'
             f'<span class="sent sent-{e.get("sentiment", "neutral")[:3]}">{html.escape(e.get("sentiment", ""))}</span>'
             f'{chip(intensity, "int-" + int_cls)}'
